@@ -36,26 +36,40 @@ def main():
 def search_puzzle(puzzle, heuristic):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
-    start_puzzle = Node(puzzle)
-    start_puzzle.is_expanded
-    start_puzzle_heuristic = heuristic
+    curr_puzzle = Node(puzzle)
+    curr_puzzle.is_expanded
+    curr_puzzle_heuristic = heuristic
     working_queue = PriorityQueue()
+    queue_size = 0
     max_queue_size = 0
     expanded_nodes = 0
     repeated_states = []
 
-    working_queue.put(start_puzzle)
+    working_queue.put(curr_puzzle)
     max_queue_size += 1
-
-    while working_queue.qsize != 0:
-        start_puzzle = working_queue.get()
-        print_puzzle(start_puzzle.puzzle) 
-        if (start_puzzle.is_expanded is not True):
-            start_puzzle.is_expanded = True
+    queue_size = working_queue.qsize()
+    while working_queue.qsize() != 0:
+        max_queue_size = max(queue_size, max_queue_size)
+        curr_puzzle = working_queue.get()
+        if (curr_puzzle.is_expanded is not True):
+            curr_puzzle.is_expanded = True
             expanded_nodes += 1
-            print("Total nodes expanded is " + str(expanded_nodes))
-        break
+        
+        if curr_puzzle.puzzle == goal_state:
+            print('Goal state!\n')
+            print('Solution depth was ' + str(curr_puzzle.depth))
+            print('Number of nodes expanded: ' + str(expanded_nodes))
+            print('Max queue size: ' + str(max_queue_size))
+            break
+        
+        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
+        print_puzzle(curr_puzzle.puzzle)
+        if (verbose):
+            print('Puzzle will now be expanded...\n')
+        expanded = node_expansion()
+    return 0
 
+def node_expansion():
     return 0
 
 def get_puzzle():
@@ -105,23 +119,23 @@ def difficulty_select():
     chosen_difficulty = False
     while (chosen_difficulty is not True):
         if difficulty == '0':
-            print("Trivial puzzle selected.")
+            print("Trivial puzzle selected.\n")
             print_puzzle(trivial_puzzle)
             return trivial_puzzle
         if difficulty == '1':
-            print("Very Easy puzzle selected.")
+            print("Very Easy puzzle selected.\n")
             print_puzzle(very_easy_puzzle)
             return very_easy_puzzle
         if difficulty == '2':
-            print("Easy puzzle selected.")
+            print("Easy puzzle selected.\n")
             print_puzzle(easy_puzzle)
             return easy_puzzle
         if difficulty == '3':
-            print("Doable puzzle selected.")
+            print("Doable puzzle selected.\n")
             print_puzzle(doable_puzzle)
             return doable_puzzle
         if difficulty == '4':
-            print("Oh boy puzzle selected.")
+            print("Oh boy puzzle selected.\n")
             print_puzzle(oh_boy_puzzle)
             return oh_boy_puzzle
         else:
@@ -141,7 +155,7 @@ def a_star_misplaced(puzzle):
                     if (verbose):
                         print('The misplaced tile is ' + str(puzzle[row][column]))
                     misplaced_tiles += 1
-    print("A total of " + str(misplaced_tiles) + " misplaced tiles were found.")
+    print("A total of " + str(misplaced_tiles) + " misplaced tiles were found." + '\n')
     return misplaced_tiles
 
 def a_star_manhatten(puzzle):
@@ -170,7 +184,7 @@ def a_star_manhatten(puzzle):
                     if (verbose):
                         print('The misplaced tile ' + str(misplaced_tile) + ' is ' + str(abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) + ' spaces away.')
                     manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column))   
-    print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten))
+    print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten) + '\n')
     return manhatten
 
 def get_goal_position(goal_state, misplaced_tile):
@@ -186,8 +200,7 @@ def print_puzzle(puzzle):
             print(str(puzzle[row][column]) + ', ', end = "")
         print(str(puzzle[row][2]), end = "")
         print(']')
+    print('\n')
 
-def node_expansion():
-    return 0
 
 main()
