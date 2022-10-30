@@ -1,9 +1,13 @@
 from queue import PriorityQueue
+from tabnanny import verbose
 import time
 import math
+from tracemalloc import start
 from turtle import pu
 
 goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
+verbose = False
+
 #EMPTY TILE IS REPRESENTED BY 0
 #Node structure should include the following operators. Move up/down/left/right. 
 #Node structure should say: If the state was expanded or not. The heuristic cost for each node. (h(n)). The node depth
@@ -20,23 +24,61 @@ class Node:
         self.depth = 0
 
 def main(): 
+    debugging = input("DEBUGGING ONLY: PRESS 1 FOR EXTRA OUTPUTS: ")
+    if (debugging):
+        global verbose
+        verbose = True
+    puzzle = get_puzzle()
+    heuristic = get_algorithm(puzzle)
+    search_puzzle(puzzle, heuristic)
+    return 0
+
+def search_puzzle(puzzle, heuristic):
+    #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
+    #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
+    start_puzzle = Node(puzzle)
+    start_puzzle.is_expanded
+    start_puzzle_heuristic = heuristic
+    working_queue = PriorityQueue()
+    max_queue_size = 0
+    expanded_nodes = 0
+    repeated_states = []
+
+    working_queue.put(start_puzzle)
+    max_queue_size += 1
+
+    while working_queue.qsize != 0:
+        start_puzzle = working_queue.get()
+        print_puzzle(start_puzzle.puzzle) 
+        if (start_puzzle.is_expanded is not True):
+            start_puzzle.is_expanded = True
+            expanded_nodes += 1
+            print("Total nodes expanded is " + str(expanded_nodes))
+        break
+
+    return 0
+
+def get_puzzle():
     chosen_puzzle = False
     puzzle_select = input("Welcome to the 8-puzzle solver! Type '1' for a set puzzle. Type '2' for a custom puzzle: ")
     while (chosen_puzzle is not True):
-        if puzzle_select != '1' and puzzle_select != '2':
-                puzzle_select = input("Incorrect input. Type '1' for a set puzzle. Type '2' for a custom puzzle: ")
+        if puzzle_select == '1':
+            return difficulty_select()
+        elif puzzle_select == '2':
+            print('Put in a custom puzzle (0 is a blank space): ')
+            custom_row_1 = input('Type in the first row here. Put a space between each number: ')
+            custom_row_2 = input('Type in the first row here. Put a space between each number: ')
+            custom_row_3 = input('Type in the first row here. Put a space between each number: ')
+            custom_puzzle = (custom_row_1.split(' '), custom_row_2.split(' '), custom_row_3.split(' '))
+            for row in range(3):
+                for column in range(3):
+                    custom_puzzle[row][column] = int(custom_puzzle[row][column])
+            if (verbose):
+                print(custom_puzzle)
+            print_puzzle(custom_puzzle)
+            return custom_puzzle
         else:
-            chosen_puzzle = True
-    puzzle = get_puzzle(puzzle_select)
-    algorithm = get_algorithm(puzzle)
-    return 0
-
-def get_puzzle(puzzle):
-    if puzzle == '1':
-        return difficulty_select()
-    elif puzzle == '2':
-        print('Put in a custom puzzle\n')
-        return 0
+            puzzle_select = input('Invalid input. Type a choice again: ')
     return 0
 
 
@@ -96,6 +138,8 @@ def a_star_misplaced(puzzle):
         for column in range(3):
             if (puzzle[row][column] != goal_state[row][column]):
                 if (puzzle[row][column] != 0): #need to account for an empty tile
+                    if (verbose):
+                        print('The misplaced tile is ' + str(puzzle[row][column]))
                     misplaced_tiles += 1
     print("A total of " + str(misplaced_tiles) + " misplaced tiles were found.")
     return misplaced_tiles
@@ -123,8 +167,10 @@ def a_star_manhatten(puzzle):
                     misplaced_row = row 
                     misplaced_column = column
                     goal_row, goal_column = get_goal_position(goal_state, misplaced_tile)
+                    if (verbose):
+                        print('The misplaced tile ' + str(misplaced_tile) + ' is ' + str(abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) + ' spaces away.')
                     manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column))   
-    print('The manhatten distance of the puzzle provided would be: ' + str(manhatten))
+    print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten))
     return manhatten
 
 def get_goal_position(goal_state, misplaced_tile):
@@ -142,9 +188,6 @@ def print_puzzle(puzzle):
         print(']')
 
 def node_expansion():
-    return 0
-
-def search_puzzle():
     return 0
 
 main()
