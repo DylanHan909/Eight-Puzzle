@@ -4,7 +4,6 @@ import math
 from turtle import pu
 
 goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
-
 #EMPTY TILE IS REPRESENTED BY 0
 #Node structure should include the following operators. Move up/down/left/right. 
 #Node structure should say: If the state was expanded or not. The heuristic cost for each node. (h(n)). The node depth
@@ -123,33 +122,16 @@ def a_star_manhatten(puzzle):
                     misplaced_tile = puzzle[row][column]
                     misplaced_row = row 
                     misplaced_column = column
-                    if misplaced_tile == 1:
-                        goal_row = 0
-                        goal_column = 0
-                    elif misplaced_tile == 2:
-                        goal_row = 0
-                        goal_column = 1
-                    elif misplaced_tile == 3:
-                        goal_row = 0
-                        goal_column = 2
-                    elif misplaced_tile == 4:
-                        goal_row = 1
-                        goal_column = 0
-                    elif misplaced_tile == 5:
-                        goal_row = 1
-                        goal_column = 1
-                    elif misplaced_tile == 6:
-                        goal_row = 1
-                        goal_column = 2
-                    elif misplaced_tile == 7:
-                        goal_row = 2
-                        goal_column = 0
-                    elif misplaced_tile == 8:
-                        goal_row = 2
-                        goal_column = 1
+                    goal_row, goal_column = get_goal_position(goal_state, misplaced_tile)
                     manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column))   
     print('The manhatten distance of the puzzle provided would be: ' + str(manhatten))
     return manhatten
+
+def get_goal_position(goal_state, misplaced_tile):
+    for row in range(3):
+        for column in range(3):
+            if (goal_state[row][column] == misplaced_tile):
+                return row, column
 
 def print_puzzle(puzzle):
     for row in range(3):
