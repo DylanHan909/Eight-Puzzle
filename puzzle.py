@@ -20,8 +20,15 @@ class Node:
         self.move_left = None
         self.move_right = None
         self.is_expanded = None
-        self.heuristic = 0
-        self.depth = 0
+        self.heuristic = 0 #h(n)
+        self.depth = 0 #g(n)
+    
+    #Implemented so the priorityqueue can compare objects and automatically preceed with the node with the lowest cost
+    #https://stackoverflow.com/questions/9292415/i-notice-i-cannot-use-priorityqueue-for-objects
+    def __lt__(self, other):
+        self.distance = self.depth + self.heuristic 
+        other.distance = other.depth + other.heuristic 
+        return other.distance > self.distance
 
 def main(): 
     debugging = input("DEBUGGING ONLY: PRESS 1 FOR EXTRA OUTPUTS: ")
@@ -29,32 +36,32 @@ def main():
         global verbose
         verbose = True
     puzzle = get_puzzle()
-    heuristic = get_algorithm(puzzle)
-    search_puzzle(puzzle, heuristic)
+    algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
+    #heuristic = get_algorithm(puzzle)
+    search_puzzle(puzzle, algorithm)
     return 0
 
-def search_puzzle(puzzle, heuristic):
+def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
     curr_puzzle = Node(puzzle)
-    curr_puzzle.is_expanded
-    curr_puzzle_heuristic = heuristic
+    curr_puzzle_heuristic = get_algorithm(puzzle, algorithm)
     working_queue = PriorityQueue()
     queue_size = 0
     max_queue_size = 0
     expanded_nodes = 0
-    repeated_states = []
+    repeated_states = set()
 
-    working_queue.put(curr_puzzle)
+    working_queue.put(curr_puzzle)  
     max_queue_size += 1
     queue_size = working_queue.qsize()
+    repeated_states.add(puzzle)
     while working_queue.qsize() != 0:
         max_queue_size = max(queue_size, max_queue_size)
         curr_puzzle = working_queue.get()
         if (curr_puzzle.is_expanded is not True):
             curr_puzzle.is_expanded = True
             expanded_nodes += 1
-        
         if curr_puzzle.puzzle == goal_state:
             print('Goal state!\n')
             print('Solution depth was ' + str(curr_puzzle.depth))
@@ -66,11 +73,38 @@ def search_puzzle(puzzle, heuristic):
         print_puzzle(curr_puzzle.puzzle)
         if (verbose):
             print('Puzzle will now be expanded...\n')
-        expanded = node_expansion()
+        expanded = node_expansion(puzzle)
+
     return 0
 
-def node_expansion():
-    return 0
+def node_expansion(puzzle):
+    expand_row = 0
+    expand_column = 0
+    for row in range(3):
+        for column in range(3):
+            if (puzzle[row][column] == 0): #tile with the empty space
+                expand_row = row
+                expand_column = column 
+    if (expand_row != 0):
+        move_up(puzzle)
+    if (expand_row < 2):
+        move_down(puzzle)
+    if (expand_column != 0):
+        move_left(puzzle)
+    if (expand_column < 2):
+        move_right(puzzle)
+    return puzzle
+def move_up(puzzle):
+    print('Moving tile upwards')
+
+def move_down(puzzle):
+    print('Moving tile downwards')
+
+def move_left(puzzle):
+    print('Moving tile leftwards')
+
+def move_right(puzzle):
+    print('Moving tile rightwards')
 
 def get_puzzle():
     chosen_puzzle = False
@@ -96,8 +130,8 @@ def get_puzzle():
     return 0
 
 
-def get_algorithm(puzzle):
-    algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
+def get_algorithm(puzzle, algorithm):
+    #algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
     chosen_algorithm = False
     while (chosen_algorithm is not True):
         if algorithm == '1':
