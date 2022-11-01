@@ -2,6 +2,7 @@ from queue import PriorityQueue
 from tabnanny import verbose
 import time
 import math
+from copy import deepcopy
 from tracemalloc import start
 from turtle import pu
 
@@ -30,34 +31,43 @@ class Node:
         other.distance = other.depth + other.heuristic 
         return other.distance > self.distance
 
-def main(): 
+def main():
+    '''
     debugging = input("DEBUGGING ONLY: PRESS 1 FOR EXTRA OUTPUTS: ")
-    if (debugging):
+    if (debugging == '1'):
         global verbose
+        debugging2 = input("DEBUGGING ONLY: PRESS 1 FOR A TEST DRIVER FOR SPECIFIC FUNCTIONS: ")
+        if (debugging2 == '1'):
+            testPartial()
         verbose = True
+    '''
     puzzle = get_puzzle()
     algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
     #heuristic = get_algorithm(puzzle)
     search_puzzle(puzzle, algorithm)
     return 0
 
+def testPartial():
+    return 0
+
 def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
+    #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9fhttps://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f as well
     curr_puzzle = Node(puzzle)
-    curr_puzzle_heuristic = get_algorithm(puzzle, algorithm)
+    curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm)
     working_queue = PriorityQueue()
-    queue_size = 0
     max_queue_size = 0
     expanded_nodes = 0
-    repeated_states = set()
-
-    working_queue.put(curr_puzzle)  
+    repeated_states = []
+    working_queue.put(curr_puzzle)
     max_queue_size += 1
     queue_size = working_queue.qsize()
-    repeated_states.add(puzzle)
-    while working_queue.qsize() != 0:
-        max_queue_size = max(queue_size, max_queue_size)
+    repeated_states.append(curr_puzzle)
+    i = 0
+    #working_queue.qsize() != 0
+    while (i < 20):
+        max_queue_size = max(working_queue.qsize(), max_queue_size)
         curr_puzzle = working_queue.get()
         if (curr_puzzle.is_expanded is not True):
             curr_puzzle.is_expanded = True
@@ -65,7 +75,7 @@ def search_puzzle(puzzle, algorithm):
         if curr_puzzle.puzzle == goal_state:
             print('Goal state!\n')
             print('Solution depth was ' + str(curr_puzzle.depth))
-            print('Number of nodes expanded: ' + str(expanded_nodes))
+            print('Number of nodes expanded: ' + str(expanded_nodes - 1))
             print('Max queue size: ' + str(max_queue_size))
             break
         
@@ -73,38 +83,85 @@ def search_puzzle(puzzle, algorithm):
         print_puzzle(curr_puzzle.puzzle)
         if (verbose):
             print('Puzzle will now be expanded...\n')
-        expanded = node_expansion(puzzle)
-
-    return 0
-
-def node_expansion(puzzle):
+        expanded = node_expansion(curr_puzzle, repeated_states)
+        children_nodes = [expanded.move_up, expanded.move_down, expanded.move_left, expanded.move_right]
+        children_nodes = list(filter(lambda item: item is not None, children_nodes))
+        #https://www.geeksforgeeks.org/python-remove-none-values-from-list/
+        for child in children_nodes:
+            if child not in repeated_states:
+                child.depth += 1
+                child.heuristic = get_algorithm(child.puzzle, algorithm)
+                working_queue.put(child)
+                repeated_states.append(child.puzzle)
+                queue_size += 1
+            else:
+                print('Repeated state found after expansion, skipping.')
+        #for nodes in repeated_states:
+        #    print('Repeated states currently are: ' + str(nodes.puzzle))
+        i += 1
+def node_expansion(puzzle, repeated_states):
     expand_row = 0
     expand_column = 0
     for row in range(3):
         for column in range(3):
-            if (puzzle[row][column] == 0): #tile with the empty space
+            if (puzzle.puzzle[row][column] == 0): #tile with the empty space
                 expand_row = row
                 expand_column = column 
     if (expand_row != 0):
-        move_up(puzzle)
+        move_up(puzzle, expand_row, expand_column, repeated_states)
     if (expand_row < 2):
-        move_down(puzzle)
+        move_down(puzzle, expand_row, expand_column, repeated_states)
     if (expand_column != 0):
-        move_left(puzzle)
+        move_left(puzzle, expand_row, expand_column, repeated_states)
     if (expand_column < 2):
-        move_right(puzzle)
+        move_right(puzzle, expand_row, expand_column, repeated_states)
     return puzzle
-def move_up(puzzle):
+
+#NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP MAKING OBJECTS 
+def move_up(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile upwards')
+    child = deepcopy(puzzle.puzzle)
+    child[expand_row][expand_column] = child[expand_row - 1][expand_column]
+    child[expand_row - 1][expand_column] = 0
+    if child not in repeated_states:
+        puzzle.move_up = Node(child)
+        print_puzzle(puzzle.move_up.puzzle)
+    else:
+        print('Repeated state found, skipping.')
 
-def move_down(puzzle):
+def move_down(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile downwards')
+    child = deepcopy(puzzle.puzzle)
+    child[expand_row][expand_column] = child[expand_row + 1][expand_column]
+    child[expand_row + 1][expand_column] = 0
+    if child not in repeated_states:
+        puzzle.move_down = Node(child)
+        print_puzzle(puzzle.move_down.puzzle) 
+    else:
+        print('Repeated state found, skipping.')
 
-def move_left(puzzle):
+
+def move_left(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile leftwards')
+    child = deepcopy(puzzle.puzzle)
+    child[expand_row][expand_column] = child[expand_row][expand_column - 1]
+    child[expand_row][expand_column - 1] = 0
+    if child not in repeated_states:
+        puzzle.move_left = Node(child)
+        print_puzzle(puzzle.move_left.puzzle) 
+    else:
+        print('Repeated state found, skipping.')
 
-def move_right(puzzle):
+def move_right(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile rightwards')
+    child = deepcopy(puzzle.puzzle)
+    child[expand_row][expand_column] = child[expand_row][expand_column + 1]
+    child[expand_row][expand_column + 1] = 0
+    if child not in repeated_states:
+        puzzle.move_right = Node(child)
+        print_puzzle(puzzle.move_right.puzzle) 
+    else:
+        print('Repeated state found, skipping.')
 
 def get_puzzle():
     chosen_puzzle = False
@@ -176,11 +233,11 @@ def difficulty_select():
             difficulty = input("Incorrect input, please choose the difficulty again: ")
 
 def getUCS():
-    print('Uniform Cost Search was selected.')
+    #print('Uniform Cost Search was selected.')
     return 0
 
 def a_star_misplaced(puzzle):
-    print('Misplaced Tile Heuristic was selected.')
+    #print('Misplaced Tile Heuristic was selected.')
     misplaced_tiles = 0
     for row in range(3):
         for column in range(3):
@@ -200,7 +257,7 @@ def a_star_manhatten(puzzle):
     #0, 2 should be at 2, 1
     #Distance formula = |x2 - x1| + |y2 - y1|, so goal state row - misplaced row + goal state column - misplaced column,  | 2 - 0 | + | 1 - 2 | = 3
     #https://cdn.codespeedy.com/wp-content/uploads/2020/03/manhattan.jpg
-    print('Manhatten Distance Heuristic was selected.')
+    #print('Manhatten Distance Heuristic was selected.')
     goal_row = 0
     goal_column = 0
     misplaced_row = 0
