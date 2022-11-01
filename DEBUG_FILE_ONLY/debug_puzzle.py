@@ -14,6 +14,8 @@ class Node:
     def __init__ (self, puzzle):
         self.puzzle = puzzle
         self.path = []
+        self.zeroRow = 0 #Track the zeroth position of a puzzle
+        self.zeroColumn = 0  #Track the zeroth position of a puzzle
         self.heuristic = 0 #h(n)
         self.depth = 0 #g(n)
     
@@ -97,30 +99,28 @@ def search_puzzle(puzzle, algorithm):
         node_expansion(curr_puzzle, repeated_states, working_queue, algorithm) #Expand nodes
 
 def node_expansion(puzzle, repeated_states, working_queue, algorithm):
-    expand_row = 0 
-    expand_column = 0
     for row in range(len(puzzle.puzzle)): #range done so it can work for 15+ size puzzles
         for column in range(len(puzzle.puzzle)):
             if (puzzle.puzzle[row][column] == 0): #tile with the empty space
-                expand_row = row #Row of the 0 element
-                expand_column = column #Column of the 0 element
-    if (expand_row < (len(puzzle.puzzle) - 1)): #If row < the bottom row
-        move_tile(puzzle, expand_row, expand_column, (expand_row + 1), expand_column, repeated_states, ' upwards.', working_queue, algorithm)
-    if (expand_row != 0): #if row > the top row
-        move_tile(puzzle, expand_row, expand_column, (expand_row - 1), expand_column, repeated_states, ' downwards.', working_queue, algorithm)
-    if (expand_column < (len(puzzle.puzzle) - 1)): #if column is to the left of the rightmost column
-        move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column + 1), repeated_states, ' leftwards.', working_queue, algorithm)
-    if (expand_column != 0): #If the column is to the right of tthe leftmost column
-        move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.', working_queue, algorithm)
+                puzzle.zeroRow = row #Row of the 0 element
+                puzzle.zeroCol = column #Column of the 0 element
+    if (puzzle.zeroRow < (len(puzzle.puzzle) - 1)): #If row < the bottom row
+        move_tile(puzzle, (puzzle.zeroRow + 1), puzzle.zeroCol, repeated_states, ' upwards.', working_queue, algorithm)
+    if (puzzle.zeroRow != 0): #if row > the top row
+        move_tile(puzzle, (puzzle.zeroRow - 1), puzzle.zeroCol, repeated_states, ' downwards.', working_queue, algorithm)
+    if (puzzle.zeroCol < (len(puzzle.puzzle) - 1)): #if column is to the left of the rightmost column
+        move_tile(puzzle, puzzle.zeroRow, (puzzle.zeroCol + 1), repeated_states, ' leftwards.', working_queue, algorithm)
+    if (puzzle.zeroCol != 0): #If the column is to the right of tthe leftmost column
+        move_tile(puzzle, puzzle.zeroRow, (puzzle.zeroCol - 1), repeated_states, ' rightwards.', working_queue, algorithm)
 
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
-def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm): #WHERE CHILDREN ARE GENERATED AND ADDED INTO THE QUEUE
+def move_tile(puzzle, new_row, new_column, repeated_states, direction, working_queue, algorithm): #WHERE CHILDREN ARE GENERATED AND ADDED INTO THE QUEUE
     path = []
     child = copy.deepcopy(puzzle.puzzle) #DEEP COPY because shallow copy is just a copy by reference, the original object still changes
     path += ['Moving tile ' + str(child[new_row][new_column]) + direction] #Adding the steps to solve the puzzle to the temp variable path
     child = convert_to_list(child) #Convert child to a list so we can modify the data inside the tuple
-    child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
+    child[puzzle.zeroRow][puzzle.zeroCol] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
     child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
     child = convert_to_tuple(child) #Reconvert the data back into a tuple
     path += [child] #Adding the puzzle to the current path
