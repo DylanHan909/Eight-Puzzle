@@ -2,8 +2,8 @@ import copy
 from queue import PriorityQueue
 import time
 
-goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access
-                                                #also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
+goal_state = ((1, 2, 3), (4, 5, 6), (7, 8, 0)) #Tuples are faster than embedded lists
+                                                #Changed inner lists to tuples to  allow for a hashable set for repeat states
 
 #EMPTY TILE IS REPRESENTED BY 0
 #Changed node structure a lot
@@ -51,7 +51,6 @@ def main():
             print('Move ' + str(move_count) + ': ' + goal_state.path[element]) #Print the current move # and the direction a tile was moved here
     print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
-
 #SEARCH RELATED FUNCTIONS
 def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
@@ -60,13 +59,13 @@ def search_puzzle(puzzle, algorithm):
     curr_puzzle = Node(puzzle) #Initial state is a Node of the chosen puzzle
     curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm) #Get algorithm via user input choice
     working_queue = PriorityQueue() #Chose priority queue to sort by the lowest heuristic when comparing each node (uses __lt__ operator)
-    repeated_states = [] #tried to use a set to speed up the process but it did not work with lists, so used a list instead
+    repeated_states = set() #Changed to a set, and modified puzzles to be all tuples to make repeat checking MUCH faster
     max_queue_size = 0 #Max queue size
     expanded_nodes = 0 #Node coun 
     curr_puzzle.path += [curr_puzzle.puzzle]
 
     working_queue.put(curr_puzzle) #Put initial state into the priority queue
-    repeated_states.append(curr_puzzle.puzzle) #put the initial states puzzle into the duplicate list
+    repeated_states.add(curr_puzzle.puzzle) #Add repeat state to the repeat set
     max_queue_size += 1 #Take into account the initial starting node
     track_time = time.time()
     max_time = 900 #15 minutes total for program to run
@@ -110,20 +109,40 @@ def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_s
     path = []
     child = copy.deepcopy(puzzle.puzzle) #DEEP COPY because shallow copy is just a copy by reference, the original object still changes
     path += ['Moving tile ' + str(child[new_row][new_column]) + direction] #Adding the steps to solve the puzzle to the temp variable path
+    child = convert_to_list(child) #Convert child to a list so we can modify the data inside the tuple
     child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
     child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
+    child = convert_to_tuple(child) #Reconvert the data back into a tuple
     path += [child] #Adding the puzzle to the current path
 
     #Based off this: https://ai.stackexchange.com/questions/7555/how-do-i-keep-track-of-already-visited-states-in-breadth-first-search
     if child not in repeated_states: #Only waste your time doing this IF this new puzzle is NOT a repeat 
-        repeated_states.append(child) #Move the new puzzle into our repeat states
+        repeated_states.add(child) #Move the new puzzle into our repeat states
         child_node = Node(child) #Create a new Node with the puzzle state
         child_node.path += puzzle.path #Add the previous paths into the child 
         child_node.path += path #Add the new path we calculated for this step 
         child_node.depth = puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
         child_node.heuristic = get_algorithm(child_node.puzzle, algorithm) #Calculate our new heuristic for our child node
         working_queue.put(child_node) #Put the child node into the priority queue
+    else:
+        print('Repeat state: skipping!')
 
+def convert_to_list(puzzle): #Convert tuple to a list for modifying the puzzle
+    temp_list = []
+    for row in range(len(puzzle)):
+        temp_list.append(list(puzzle[row]))
+    temp_list = tuple(temp_list)
+    return temp_list
+
+def convert_to_tuple(puzzle): #Convert back to a tuple
+    temp_tuple = ()
+    tuple_list = []
+    for row in range(len(puzzle)):
+        temp_tuple = tuple(puzzle[row])
+        tuple_list.append(temp_tuple)
+    tuple_list = tuple(tuple_list)
+    return tuple_list
+    
 def get_puzzle():
     chosen_puzzle = False
     puzzle_select = input("Welcome to the 8-puzzle solver! Type '1' for a set puzzle. Type '2' for a custom puzzle: ")
@@ -143,6 +162,7 @@ def get_puzzle():
             for row in range(len(custom_puzzle)): 
                 for column in range(len(custom_puzzle)):
                     custom_puzzle[row][column] = int(custom_puzzle[row][column]) #Make every element an int so they can be modified later
+            custom_puzzle = convert_to_tuple(custom_puzzle)
             print_puzzle(custom_puzzle)
             return custom_puzzle
         else:
@@ -162,15 +182,15 @@ def get_algorithm(puzzle, algorithm): #Choose algorithm depending on the user in
             algorithm = input("Incorrect input, please choose the search type again: ")
         
 def difficulty_select():  #Choose puzzle depending on the user input
-    depth_zero = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
-    depth_two = ([1, 2, 3], [4, 5, 6], [0, 7, 8])
-    depth_four = ([1, 2, 3], [5, 0, 6], [4, 7, 8])
-    depth_eight = ([1, 3, 6], [5, 0, 2], [4, 7, 8])
-    depth_twelve = ([1, 3, 6], [5, 0, 7], [4, 8, 2])
-    depth_sixteen = ([1, 6, 7], [5, 0, 3], [4, 8, 2])
-    depth_twenty = ([7, 1, 2], [4, 8, 5], [6, 3, 0])
-    depth_twenty_four = ([0, 7, 2], [4, 6, 1], [3, 5, 8])
-    depth_thirty_one = ([8, 6, 7], [2, 5, 4], [3, 0, 1])
+    depth_zero = ((1, 2, 3), (4, 5, 6), (7, 8, 0))
+    depth_two = ((1, 2, 3), (4, 5, 6), (0, 7, 8))
+    depth_four = ((1, 2, 3), (5, 0, 6), (4, 7, 8))
+    depth_eight = ((1, 3, 6), (5, 0, 2), (4, 7, 8))
+    depth_twelve = ((1, 3, 6), (5, 0, 7), (4, 8, 2))
+    depth_sixteen = ((1, 6, 7), (5, 0, 3), (4, 8, 2))
+    depth_twenty = ((7, 1, 2), (4, 8, 5), (6, 3, 0))
+    depth_twenty_four = ((0, 7, 2), (4, 6, 1), (3, 5, 8))
+    depth_thirty_one = ((8, 6, 7), (2, 5, 4), (3, 0, 1))
     difficulty = input("Select difficulty from 1 to 9 (Lower = Easier, Difficulty of  >= 8 might take a LONG time to finish depending on the algorithm): ")
     chosen_difficulty = False
     while (chosen_difficulty is not True):
