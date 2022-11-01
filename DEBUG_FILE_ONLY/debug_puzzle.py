@@ -48,11 +48,11 @@ def main():
     print('The path to get to the node was: ')
     move_count = 0
     for element in range(len(goal_state.path)):
-        if type(goal_state.path[element]) is tuple:
-            print_puzzle(goal_state.path[element])
-        else:
+        if type(goal_state.path[element]) is tuple: #If the element in the list is a puzzle
+            print_puzzle(goal_state.path[element]) #Print it
+        else: #Otherwise
             move_count += 1
-            print('Move ' + str(move_count) + ': ' + goal_state.path[element])
+            print('Move ' + str(move_count) + ': ' + goal_state.path[element]) #Print the current move # and the direction a tile was moved here
     print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
 
@@ -122,7 +122,7 @@ def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_s
         print('Moving tile ' + str(child[new_row][new_column]) + direction)
     child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
     child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
-    path += [child]
+    path += [child] #Adding the puzzle to the node structure
     if child not in repeated_states: #If this new puzzle is NOT a repeat 
         repeated_states.append(child) #Move the new puzzle into our repeat states
         child_node = Node(child) #Create a new Node with the puzzle state

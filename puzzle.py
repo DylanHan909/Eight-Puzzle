@@ -42,12 +42,13 @@ def main():
     print('Max queue size: ' + str(max_queue_size))
     print('The path to get to the node was: ')
     move_count = 0
+    #Printing out the path in full
     for element in range(len(goal_state.path)):
-        if type(goal_state.path[element]) is tuple:
-            print_puzzle(goal_state.path[element])
-        else:
+        if type(goal_state.path[element]) is tuple: #If the element in the list is a puzzle
+            print_puzzle(goal_state.path[element]) #Print it
+        else: #Otherwise
             move_count += 1
-            print('Move ' + str(move_count) + ': ' + goal_state.path[element])
+            print('Move ' + str(move_count) + ': ' + goal_state.path[element]) #Print the current move # and the direction a tile was moved here
     print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
 
@@ -56,7 +57,6 @@ def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
     #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f
-
     curr_puzzle = Node(puzzle) #Initial state is a Node of the chosen puzzle
     curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm) #Get algorithm via user input choice
     working_queue = PriorityQueue()
@@ -112,7 +112,9 @@ def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_s
     path += ['Moving tile ' + str(child[new_row][new_column]) + direction] #Adding the steps to solve the puzzle to the node structure
     child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
     child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
-    path += [child]
+    path += [child] #Adding the puzzle to the node structure
+
+    #Based off this: https://ai.stackexchange.com/questions/7555/how-do-i-keep-track-of-already-visited-states-in-breadth-first-search
     if child not in repeated_states: #If this new puzzle is NOT a repeat 
         repeated_states.append(child) #Move the new puzzle into our repeat states
         child_node = Node(child) #Create a new Node with the puzzle state
@@ -147,9 +149,9 @@ def get_puzzle():
             puzzle_select = input('Invalid input. Type a choice again: ')
     return 0
 
-def get_algorithm(puzzle, algorithm):
+def get_algorithm(puzzle, algorithm): #Choose algorithm depending on the user input
     chosen_algorithm = False
-    while (chosen_algorithm is not True): #Choose algorithm depending on the user input
+    while (chosen_algorithm is not True): 
         if algorithm == '1':
             return uniform_cost()
         if algorithm == '2':
@@ -159,7 +161,7 @@ def get_algorithm(puzzle, algorithm):
         else:
             algorithm = input("Incorrect input, please choose the search type again: ")
         
-def difficulty_select():
+def difficulty_select():  #Choose puzzle depending on the user input
     depth_zero = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
     depth_two = ([1, 2, 3], [4, 5, 6], [0, 7, 8])
     depth_four = ([1, 2, 3], [5, 0, 6], [4, 7, 8])
@@ -171,7 +173,7 @@ def difficulty_select():
     depth_thirty_one = ([8, 6, 7], [2, 5, 4], [3, 0, 1])
     difficulty = input("Select difficulty from 1 to 9 (Lower = Easier, Difficulty of  >= 8 might take a LONG time to finish depending on the algorithm): ")
     chosen_difficulty = False
-    while (chosen_difficulty is not True): #Choose puzzle depending on the user input
+    while (chosen_difficulty is not True):
         if difficulty == '1':
             print("Depth 0 puzzle selected.\n")
             print_puzzle(depth_zero)
@@ -223,7 +225,6 @@ def print_puzzle(puzzle): #Helper function to print out the puzzle in a neat man
         printed_puzzle += str(puzzle[row])
         printed_puzzle += '\n'
     print(printed_puzzle)
-    return printed_puzzle
 
 #HEURISTIC FUNCTIONS
 def uniform_cost():
@@ -239,10 +240,6 @@ def a_star_misplaced(puzzle):
     return misplaced_tiles
 
 def a_star_manhatten(puzzle):
-    #[1, 2, 3]    [3, 2, 8] manhatten for 3 = 2, 2 to the right, manhatten for 8 = 3, 1 left, 2 down, manhatten for 1 = 3, 2 up, 1 down
-    #[4, 5, 6]    [4, 5, 6] 
-    #[7, 8, 0]    [7, 1, 0]
-    #0, 2 should be at 2, 1
     #Distance formula = |x2 - x1| + |y2 - y1|, so goal state row - misplaced row + goal state column - misplaced column,  | 2 - 0 | + | 1 - 2 | = 3
     #https://cdn.codespeedy.com/wp-content/uploads/2020/03/manhattan.jpg
     goal_row = 0
@@ -263,3 +260,14 @@ def a_star_manhatten(puzzle):
     return manhatten
 
 main()
+
+#ALL SOURCES LINKED BELOW:
+#https://raspberrypi.stackexchange.com/questions/15613/stop-program-after-a-period-of-time, Done in case a search depth takes way too long to finish
+#Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
+#HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
+#INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f
+#Implemented so the priorityqueue can compare objects and automatically preceed with the node with the lowest cost
+#https://stackoverflow.com/questions/9292415/i-notice-i-cannot-use-priorityqueue-for-objects
+#https://cdn.codespeedy.com/wp-content/uploads/2020/03/manhattan.jpg
+#Based off this: https://ai.stackexchange.com/questions/7555/how-do-i-keep-track-of-already-visited-states-in-breadth-first-search
+
