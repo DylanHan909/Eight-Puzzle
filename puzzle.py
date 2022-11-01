@@ -41,7 +41,8 @@ def main():
     start = time.time()
     search_puzzle(puzzle, algorithm)
     end = time.time()
-    print ('Search time was ' + str(end - start)  + ' seconds')
+    search_time = end - start
+    print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
 
 #SEARCH RELATED FUNCTIONS
