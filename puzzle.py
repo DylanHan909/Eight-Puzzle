@@ -107,7 +107,7 @@ def node_expansion(puzzle, repeated_states, working_queue, algorithm):
 
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
-def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm):
+def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm): #WHERE CHILDREN ARE GENERATED AND ADDED INTO THE QUEUE
     child = copy.deepcopy(puzzle.puzzle) #DEEP COPY because shallow copy is just a copy by reference, the original object still changes
     path = 'Moving tile ' + str(child[new_row][new_column]) + direction + '\n' #Adding the steps to solve the puzzle to the node structure
     if (verbose):
