@@ -60,6 +60,7 @@ def search_puzzle(puzzle, algorithm):
     expanded_nodes = 0
 
     working_queue.put(curr_puzzle)
+    repeated_states.append(curr_puzzle.puzzle)
     max_queue_size += 1
     while (working_queue.qsize() != 0):
         max_queue_size = max(working_queue.qsize(), max_queue_size)
