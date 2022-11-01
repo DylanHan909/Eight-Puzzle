@@ -180,56 +180,17 @@ def get_algorithm(puzzle, algorithm): #Choose algorithm depending on the user in
             algorithm = input("Incorrect input, please choose the search type again: ")
         
 def difficulty_select():  #Choose puzzle depending on the user input
-    depth_zero = ((1, 2, 3), (4, 5, 6), (7, 8, 0))
-    depth_two = ((1, 2, 3), (4, 5, 6), (0, 7, 8))
-    depth_four = ((1, 2, 3), (5, 0, 6), (4, 7, 8))
-    depth_eight = ((1, 3, 6), (5, 0, 2), (4, 7, 8))
-    depth_twelve = ((1, 3, 6), (5, 0, 7), (4, 8, 2))
-    depth_sixteen = ((1, 6, 7), (5, 0, 3), (4, 8, 2))
-    depth_twenty = ((7, 1, 2), (4, 8, 5), (6, 3, 0))
-    depth_twenty_four = ((0, 7, 2), (4, 6, 1), (3, 5, 8))
-    depth_thirty_one = ((8, 6, 7), (2, 5, 4), (3, 0, 1))
-    difficulty = input("Select difficulty from 1 to 9 (Lower = Easier, Difficulty of  >= 8 might take a LONG time to finish depending on the algorithm): ")
+    all_puzzles = (((1, 2, 3), (4, 5, 6), (7, 8, 0)), ((1, 2, 3), (4, 5, 6), (0, 7, 8)), ((1, 2, 3), (5, 0, 6), (4, 7, 8)), 
+                   ((1, 3, 6), (5, 0, 2), (4, 7, 8)), ((1, 3, 6), (5, 0, 7), (4, 8, 2)), ((1, 6, 7), (5, 0, 3), (4, 8, 2)), 
+                   ((7, 1, 2), (4, 8, 5), (6, 3, 0)), ((0, 7, 2), (4, 6, 1), (3, 5, 8)), ((8, 6, 7), (2, 5, 4), (3, 0, 1))) 
+    difficulty = int(input("Select difficulty from 1 to 9 (Lower = Easier, Difficulty of  >= 8 might take a LONG time to finish depending on the algorithm): "))
     chosen_difficulty = False
     while (chosen_difficulty is not True):
-        if difficulty == '1':
-            print("Depth 0 puzzle selected.\n")
-            print_puzzle(depth_zero)
-            return depth_zero
-        if difficulty == '2':
-            print("Depth 2 puzzle selected.\n")
-            print_puzzle(depth_two)
-            return depth_two
-        if difficulty == '3':
-            print("Depth 4 selected.\n")
-            print_puzzle(depth_four)
-            return depth_four
-        if difficulty == '4':
-            print("Depth 8 selected.\n")
-            print_puzzle(depth_eight)
-            return depth_eight
-        if difficulty == '5':
-            print("Depth 12 selected.\n")
-            print_puzzle(depth_twelve)
-            return depth_twelve
-        if difficulty == '6':
-            print("Depth 16 selected.\n")
-            print_puzzle(depth_sixteen)
-            return depth_sixteen
-        if difficulty == '7':
-            print("Depth 20 selected.\n")
-            print_puzzle(depth_twenty)
-            return depth_twenty
-        if difficulty == '8':
-            print("Depth 24 selected.\n")
-            print_puzzle(depth_twenty_four)
-            return depth_twenty_four
-        if difficulty == '9':
-            print("Depth 31 selected.\n")
-            print_puzzle(depth_thirty_one)
-            return depth_thirty_one
+        if ((difficulty > 0) and (difficulty < 10)):
+            print_puzzle(all_puzzles[difficulty - 1])
+            return all_puzzles[difficulty - 1]
         else:
-            difficulty = input("Incorrect input, please choose the difficulty again: ")
+            difficulty = int(input("Incorrect input, please choose the difficulty again: "))
 
 def get_goal_position(goal_state, misplaced_tile): #Helper function to get the goal coordinates for manhatten distance formula
     for row in range(len(goal_state)):
