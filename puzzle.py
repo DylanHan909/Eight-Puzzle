@@ -26,7 +26,7 @@ class Node:
         self.distance = self.depth + self.heuristic 
         other.distance = other.depth + other.heuristic
         if (other.distance == self.distance):
-            return other.depth > self.depth #Done because my search was bugged, when f(n) equalled, it would choose a larger depth randomly, choose the smaller depth manually to solve 
+            return other.depth > self.depth #Done because my search was bugged, when f(n) equaled, it would choose a larger depth randomly, choose the smaller depth manually to solve 
         else:
             return other.distance > self.distance
 #Driver FUNCTION
