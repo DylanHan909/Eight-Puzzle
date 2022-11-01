@@ -62,25 +62,23 @@ def search_puzzle(puzzle, algorithm):
     repeated_states = []
     working_queue.put(curr_puzzle)
     max_queue_size += 1
-    queue_size = working_queue.qsize()
     repeated_states.append(curr_puzzle)
-    i = 0
-    #working_queue.qsize() != 0
-    while (i < 20):
+    while (working_queue.qsize() != 0):
         max_queue_size = max(working_queue.qsize(), max_queue_size)
         curr_puzzle = working_queue.get()
+        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
+        print_puzzle(curr_puzzle.puzzle)
         if (curr_puzzle.is_expanded is not True):
             curr_puzzle.is_expanded = True
             expanded_nodes += 1
         if curr_puzzle.puzzle == goal_state:
             print('Goal state!\n')
+            print_puzzle(curr_puzzle.puzzle)
             print('Solution depth was ' + str(curr_puzzle.depth))
             print('Number of nodes expanded: ' + str(expanded_nodes - 1))
             print('Max queue size: ' + str(max_queue_size))
             break
         
-        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
-        print_puzzle(curr_puzzle.puzzle)
         if (verbose):
             print('Puzzle will now be expanded...\n')
         expanded = node_expansion(curr_puzzle, repeated_states)
@@ -89,16 +87,11 @@ def search_puzzle(puzzle, algorithm):
         #https://www.geeksforgeeks.org/python-remove-none-values-from-list/
         for child in children_nodes:
             if child not in repeated_states:
-                child.depth += 1
+                child.depth = curr_puzzle.depth + 1
                 child.heuristic = get_algorithm(child.puzzle, algorithm)
                 working_queue.put(child)
                 repeated_states.append(child.puzzle)
-                queue_size += 1
-            else:
-                print('Repeated state found after expansion, skipping.')
-        #for nodes in repeated_states:
-        #    print('Repeated states currently are: ' + str(nodes.puzzle))
-        i += 1
+
 def node_expansion(puzzle, repeated_states):
     expand_row = 0
     expand_column = 0
@@ -127,7 +120,7 @@ def move_up(puzzle, expand_row, expand_column, repeated_states):
         puzzle.move_up = Node(child)
         print_puzzle(puzzle.move_up.puzzle)
     else:
-        print('Repeated state found, skipping.')
+        print('Repeated state found, skipping.\n')
 
 def move_down(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile downwards')
@@ -138,7 +131,7 @@ def move_down(puzzle, expand_row, expand_column, repeated_states):
         puzzle.move_down = Node(child)
         print_puzzle(puzzle.move_down.puzzle) 
     else:
-        print('Repeated state found, skipping.')
+        print('Repeated state found, skipping.\n')
 
 
 def move_left(puzzle, expand_row, expand_column, repeated_states):
@@ -150,7 +143,7 @@ def move_left(puzzle, expand_row, expand_column, repeated_states):
         puzzle.move_left = Node(child)
         print_puzzle(puzzle.move_left.puzzle) 
     else:
-        print('Repeated state found, skipping.')
+        print('Repeated state found, skipping.\n')
 
 def move_right(puzzle, expand_row, expand_column, repeated_states):
     print('Moving tile rightwards')
@@ -161,7 +154,7 @@ def move_right(puzzle, expand_row, expand_column, repeated_states):
         puzzle.move_right = Node(child)
         print_puzzle(puzzle.move_right.puzzle) 
     else:
-        print('Repeated state found, skipping.')
+        print('Repeated state found, skipping.\n')
 
 def get_puzzle():
     chosen_puzzle = False
@@ -246,7 +239,7 @@ def a_star_misplaced(puzzle):
                     if (verbose):
                         print('The misplaced tile is ' + str(puzzle[row][column]))
                     misplaced_tiles += 1
-    print("A total of " + str(misplaced_tiles) + " misplaced tiles were found." + '\n')
+    #print("A total of " + str(misplaced_tiles) + " misplaced tiles were found." + '\n')
     return misplaced_tiles
 
 def a_star_manhatten(puzzle):
@@ -275,7 +268,7 @@ def a_star_manhatten(puzzle):
                     if (verbose):
                         print('The misplaced tile ' + str(misplaced_tile) + ' is ' + str(abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) + ' spaces away.')
                     manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column))   
-    print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten) + '\n')
+    #print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten) + '\n')
     return manhatten
 
 def get_goal_position(goal_state, misplaced_tile):
