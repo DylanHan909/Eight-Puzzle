@@ -4,7 +4,7 @@ from tabnanny import verbose
 import time
 
 goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
-verbose = False
+verbose = False #A way to have debugging outputs for testing purposes
 
 #EMPTY TILE IS REPRESENTED BY 0
 #Node structure should include the following operators. Move up/down/left/right. 
@@ -27,12 +27,12 @@ class Node:
             return other.distance > self.distance
 #Driver FUNCTION
 def main():
-    #'''
+    '''
     debugging = input("DEBUGGING ONLY: PRESS 1 FOR EXTRA OUTPUTS: ")
     if (debugging == '1'):
         global verbose
         verbose = True
-    #'''
+    '''
     puzzle = get_puzzle()
     algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
     while (int(algorithm) < 1 or int(algorithm) > 3):
@@ -48,16 +48,17 @@ def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
     #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f
-    curr_puzzle = Node(puzzle)
-    curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm)
+
+    curr_puzzle = Node(puzzle) #Initial state is a Node of the chosen puzzle
+    curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm) #Get algorithm via user input choice
     working_queue = PriorityQueue()
     repeated_states = [] #tried to use a set to speed up the process but it did not
-    max_queue_size = 0
-    expanded_nodes = 0
+    max_queue_size = 0 #Max queue size
+    expanded_nodes = 0 #Node count
 
-    working_queue.put(curr_puzzle)
-    repeated_states.append(curr_puzzle.puzzle)
-    max_queue_size += 1
+    working_queue.put(curr_puzzle) #Put initial state into the priority queue
+    repeated_states.append(curr_puzzle.puzzle) #put the initial states puzzle into the duplicate list
+    max_queue_size += 1 #Take into account the initial starting node
     track_time = time.time()
     max_time = 900 #15 minutes total for program to run
     while (working_queue.qsize() != 0):
@@ -65,11 +66,11 @@ def search_puzzle(puzzle, algorithm):
         if (time.time() >= track_time + max_time):
             print('Program time is up! Ending program now!')
             exit(0)
-        max_queue_size = max(working_queue.qsize(), max_queue_size)
-        curr_puzzle = working_queue.get()
-        expanded_nodes += 1
+        max_queue_size = max(working_queue.qsize(), max_queue_size) #change max queue size to the biggest size between the working queue and the max queue
+        curr_puzzle = working_queue.get() #Get the smallest heuristic node from the queue
+        expanded_nodes += 1 #Expand the node count
 
-        if curr_puzzle.puzzle == goal_state:
+        if curr_puzzle.puzzle == goal_state: #If you match the goal state
             print('Goal state!\n')
             print_puzzle(curr_puzzle.puzzle)
             print('Solution depth was ' + str(curr_puzzle.depth))
@@ -80,40 +81,40 @@ def search_puzzle(puzzle, algorithm):
         
         if (verbose):
             print('Puzzle will now be expanded...\n')
-            
-        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
-        print_puzzle(curr_puzzle.puzzle)
 
-        node_expansion(curr_puzzle, repeated_states, working_queue, algorithm)
+        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...') #output the chosen state's heuristic
+        print_puzzle(curr_puzzle.puzzle) #Print the puzzle
+
+        node_expansion(curr_puzzle, repeated_states, working_queue, algorithm) #Expand nodes
 
 def node_expansion(puzzle, repeated_states, working_queue, algorithm):
-    expand_row = 0
+    expand_row = 0 
     expand_column = 0
-    for row in range(len(puzzle.puzzle)):
+    for row in range(len(puzzle.puzzle)): #range done so it can work for 15+ size puzzles
         for column in range(len(puzzle.puzzle)):
             if (puzzle.puzzle[row][column] == 0): #tile with the empty space
-                expand_row = row
-                expand_column = column 
-    if (expand_row < (len(puzzle.puzzle) - 1)):
+                expand_row = row #Row of the 0 element
+                expand_column = column #Column of the 0 element
+    if (expand_row < (len(puzzle.puzzle) - 1)): #If row < the bottom row
         move_tile(puzzle, expand_row, expand_column, (expand_row + 1), expand_column, repeated_states, ' upwards.', working_queue, algorithm)
-    if (expand_row != 0):
+    if (expand_row != 0): #if row > the top row
         move_tile(puzzle, expand_row, expand_column, (expand_row - 1), expand_column, repeated_states, ' downwards.', working_queue, algorithm)
-    if (expand_column < (len(puzzle.puzzle) - 1)):
+    if (expand_column < (len(puzzle.puzzle) - 1)): #if column is to the left of the rightmost column
         move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column + 1), repeated_states, ' leftwards.', working_queue, algorithm)
-    if (expand_column != 0):
+    if (expand_column != 0): #If the column is to the right of tthe leftmost column
         move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.', working_queue, algorithm)
 
 #HEURISTIC FUNCTIONS
 def uniform_cost():
     if (verbose):
         print('Uniform Cost Search was selected.')
-    return 0
+    return 0 #Heuristic is always 0
 
 def a_star_misplaced(puzzle):
     if (verbose):
         print('Misplaced Tile Heuristic was selected.')
     misplaced_tiles = 0
-    for row in range(len(puzzle)):
+    for row in range(len(puzzle)): #Loop through the puzzle
         for column in range(len(puzzle)):
             if (puzzle[row][column] != goal_state[row][column]):
                 if (puzzle[row][column] != 0): #need to account for an empty tile
@@ -143,13 +144,13 @@ def a_star_manhatten(puzzle):
         for column in range(len(puzzle)):
             if (puzzle[row][column] != goal_state[row][column]):
                 if (puzzle[row][column] != 0): #need to account for an empty tile
-                    misplaced_tile = puzzle[row][column]
-                    misplaced_row = row 
-                    misplaced_column = column
-                    goal_row, goal_column = get_goal_position(goal_state, misplaced_tile)
+                    misplaced_tile = puzzle[row][column] #Find the misplaced tile
+                    misplaced_row = row #Have the row
+                    misplaced_column = column #Have the column
+                    goal_row, goal_column = get_goal_position(goal_state, misplaced_tile) #Run our helper function to find our goal coordinates for the formula to work
                     if (verbose):
-                        print('The misplaced tile ' + str(misplaced_tile) + ' is ' + str(abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) + ' spaces away.')
-                    manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column))   
+                        print('The misplaced tile ' + str(misplaced_tile) + ' is ' + str(abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) + ' spaces away.') 
+                    manhatten += (abs(goal_row - misplaced_row) + abs(goal_column - misplaced_column)) #Uses the formula linked above
     if (verbose):
         print('The Manhatten Distance of the puzzle provided would be: ' + str(manhatten) + '\n')
     return manhatten
@@ -157,20 +158,20 @@ def a_star_manhatten(puzzle):
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
 def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm):
-    child = copy.deepcopy(puzzle.puzzle)
-    path = 'Moving tile ' + str(child[new_row][new_column]) + direction + '\n'
+    child = copy.deepcopy(puzzle.puzzle) #DEEP COPY because shallow copy is just a copy by reference, the original object still changes
+    path = 'Moving tile ' + str(child[new_row][new_column]) + direction + '\n' #Adding the steps to solve the puzzle to the node structure
     if (verbose):
         print('Moving tile ' + str(child[new_row][new_column]) + direction)
-    child[expand_row][expand_column] = child[new_row][new_column]
-    child[new_row][new_column] = 0
-    if child not in repeated_states:
-        repeated_states.append(child)
-        child_node = Node(child)
-        child_node.path += puzzle.path
-        child_node.path += path
+    child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
+    child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
+    if child not in repeated_states: #If this new puzzle is NOT a repeat 
+        repeated_states.append(child) #Move the new puzzle into our repeat states
+        child_node = Node(child) #Create a new Node with the puzzle state
+        child_node.path += puzzle.path #Add the previous paths into the child 
+        child_node.path += path #Add the new path we calculated for this step 
         child_node.depth = puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
-        child_node.heuristic = get_algorithm(child_node.puzzle, algorithm)
-        working_queue.put(child_node)
+        child_node.heuristic = get_algorithm(child_node.puzzle, algorithm) #Calculate our new heuristic for our child node
+        working_queue.put(child_node) #Put the child node into the priority queue
         if (verbose):
             print('Child formed')
             print_puzzle(child_node.puzzle)
@@ -183,16 +184,16 @@ def get_puzzle():
     puzzle_select = input("Welcome to the 8-puzzle solver! Type '1' for a set puzzle. Type '2' for a custom puzzle: ")
     while (chosen_puzzle is not True):
         if puzzle_select == '1':
-            return difficulty_select()
+            return difficulty_select() #Function to choose a pre-made puzzle
         elif puzzle_select == '2':
             print('Put in a custom puzzle (0 is a blank space): ')
             custom_row_1 = input('Type in the first row here. Put a space between each number: ')
             custom_row_2 = input('Type in the first row here. Put a space between each number: ')
             custom_row_3 = input('Type in the first row here. Put a space between each number: ')
-            custom_puzzle = (custom_row_1.split(' '), custom_row_2.split(' '), custom_row_3.split(' '))
+            custom_puzzle = (custom_row_1.split(' '), custom_row_2.split(' '), custom_row_3.split(' ')) #Make lists in a tuple to represent the puzzle state
             for row in range(len(custom_puzzle)):
                 for column in range(len(custom_puzzle)):
-                    custom_puzzle[row][column] = int(custom_puzzle[row][column])
+                    custom_puzzle[row][column] = int(custom_puzzle[row][column]) #Make every element an int so they can be modified later
             if (verbose):
                 print(custom_puzzle)
             print_puzzle(custom_puzzle)
@@ -203,7 +204,7 @@ def get_puzzle():
 
 def get_algorithm(puzzle, algorithm):
     chosen_algorithm = False
-    while (chosen_algorithm is not True):
+    while (chosen_algorithm is not True): #Choose algorithm depending on the user input
         if algorithm == '1':
             return uniform_cost()
         if algorithm == '2':
@@ -221,7 +222,7 @@ def difficulty_select():
     oh_boy_puzzle = ([8, 7, 1], [6, 0, 2], [5, 4, 3])
     difficulty = input("Select difficulty from 0 to 4: ")
     chosen_difficulty = False
-    while (chosen_difficulty is not True):
+    while (chosen_difficulty is not True): #Choose puzzle depending on the user input
         if difficulty == '0':
             print("Trivial puzzle selected.\n")
             print_puzzle(trivial_puzzle)
@@ -245,13 +246,13 @@ def difficulty_select():
         else:
             difficulty = input("Incorrect input, please choose the difficulty again: ")
 
-def get_goal_position(goal_state, misplaced_tile):
+def get_goal_position(goal_state, misplaced_tile): #Helper function to get the goal coordinates for manhatten distance formula
     for row in range(len(goal_state)):
         for column in range(len(goal_state)):
             if (goal_state[row][column] == misplaced_tile):
                 return row, column
 
-def print_puzzle(puzzle):
+def print_puzzle(puzzle): #Helper function to print out the puzzle in a neat manner
     for row in range(len(puzzle)):
         print('[', end = "")
         for column in range(len(puzzle) - 1):
