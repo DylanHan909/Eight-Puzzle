@@ -3,7 +3,7 @@ from queue import PriorityQueue
 from tabnanny import verbose
 import time
 
-goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
+goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access, also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
 verbose = False #A way to have debugging outputs for testing purposes
 
 #EMPTY TILE IS REPRESENTED BY 0
@@ -137,12 +137,16 @@ def get_puzzle():
         if puzzle_select == '1':
             return difficulty_select() #Function to choose a pre-made puzzle
         elif puzzle_select == '2':
+            row_count = int(input('Enter the amount of rows you want for the puzzle. Below 1 will default to 3 rows: ' )) #Future proofing the program
+            if (row_count < 1):
+                row_count = 3
             print('Put in a custom puzzle (0 is a blank space): ')
-            custom_row_1 = input('Type in the first row here. Put a space between each number: ')
-            custom_row_2 = input('Type in the first row here. Put a space between each number: ')
-            custom_row_3 = input('Type in the first row here. Put a space between each number: ')
-            custom_puzzle = (custom_row_1.split(' '), custom_row_2.split(' '), custom_row_3.split(' ')) #Make lists in a tuple to represent the puzzle state
-            for row in range(len(custom_puzzle)):
+            custom_puzzle = [] #Store initially as a list to easily add elements via a loop
+            for row in range(row_count): #Loop to make lists per row entered in as an input for the puzzle
+                custom_row = input('Type in row number ' + str(row + 1) + ' here. Put a space between each number: ')
+                custom_puzzle.append(custom_row.split(' ')) #Split elements by space 
+            custom_puzzle = tuple(custom_puzzle) #Convert the list into a tuple
+            for row in range(len(custom_puzzle)): 
                 for column in range(len(custom_puzzle)):
                     custom_puzzle[row][column] = int(custom_puzzle[row][column]) #Make every element an int so they can be modified later
             if (verbose):
@@ -208,7 +212,7 @@ def print_puzzle(puzzle): #Helper function to print out the puzzle in a neat man
         print('[', end = "")
         for column in range(len(puzzle) - 1):
             print(str(puzzle[row][column]) + ', ', end = "")
-        print(str(puzzle[row][2]), end = "")
+        print(str(puzzle[row][len(puzzle) - 1]), end = "")
         print(']')
     print('\n')
 
