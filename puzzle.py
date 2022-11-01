@@ -13,7 +13,6 @@ class Node:
     def __init__ (self, puzzle):
         self.puzzle = puzzle
         self.path = ''
-        self.is_expanded = None
         self.heuristic = 0 #h(n)
         self.depth = 0 #g(n)
     
@@ -68,11 +67,7 @@ def search_puzzle(puzzle, algorithm):
             exit(0)
         max_queue_size = max(working_queue.qsize(), max_queue_size)
         curr_puzzle = working_queue.get()
-        if (curr_puzzle.is_expanded is not True):
-            curr_puzzle.is_expanded = True
-            expanded_nodes += 1
-        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
-        print_puzzle(curr_puzzle.puzzle)
+        expanded_nodes += 1
 
         if curr_puzzle.puzzle == goal_state:
             print('Goal state!\n')
@@ -85,38 +80,28 @@ def search_puzzle(puzzle, algorithm):
         
         if (verbose):
             print('Puzzle will now be expanded...\n')
-        
-        children_nodes = node_expansion(curr_puzzle, repeated_states)
-        children_nodes = list(filter(lambda item: item is not None, children_nodes))
-        #https://www.geeksforgeeks.org/python-remove-none-values-from-list/
-        for child in children_nodes:
-            if child not in repeated_states:
-                child.depth = curr_puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
-                child.heuristic = get_algorithm(child.puzzle, algorithm)
-                working_queue.put(child)
-                repeated_states.append(child.puzzle)
+            
+        print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...')
+        print_puzzle(curr_puzzle.puzzle)
 
-def node_expansion(puzzle, repeated_states):
+        node_expansion(curr_puzzle, repeated_states, working_queue, algorithm)
+
+def node_expansion(puzzle, repeated_states, working_queue, algorithm):
     expand_row = 0
     expand_column = 0
-    child1 = None
-    child2 = None
-    child3 = None
-    child4 = None
     for row in range(len(puzzle.puzzle)):
         for column in range(len(puzzle.puzzle)):
             if (puzzle.puzzle[row][column] == 0): #tile with the empty space
                 expand_row = row
                 expand_column = column 
     if (expand_row < (len(puzzle.puzzle) - 1)):
-        child1 = move_tile(puzzle, expand_row, expand_column, (expand_row + 1), expand_column, repeated_states, ' upwards.')
+        move_tile(puzzle, expand_row, expand_column, (expand_row + 1), expand_column, repeated_states, ' upwards.', working_queue, algorithm)
     if (expand_row != 0):
-        child2 = move_tile(puzzle, expand_row, expand_column, (expand_row - 1), expand_column, repeated_states, ' downwards.')
+        move_tile(puzzle, expand_row, expand_column, (expand_row - 1), expand_column, repeated_states, ' downwards.', working_queue, algorithm)
     if (expand_column < (len(puzzle.puzzle) - 1)):
-        child3 = move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column + 1), repeated_states, ' leftwards.')
+        move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column + 1), repeated_states, ' leftwards.', working_queue, algorithm)
     if (expand_column != 0):
-        child4 = move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.')
-    return [child1, child2, child3, child4]
+        move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.', working_queue, algorithm)
 
 #HEURISTIC FUNCTIONS
 def uniform_cost():
@@ -171,7 +156,7 @@ def a_star_manhatten(puzzle):
 
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
-def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction):
+def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm):
     child = copy.deepcopy(puzzle.puzzle)
     path = 'Moving tile ' + str(child[new_row][new_column]) + direction + '\n'
     if (verbose):
@@ -179,17 +164,19 @@ def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_s
     child[expand_row][expand_column] = child[new_row][new_column]
     child[new_row][new_column] = 0
     if child not in repeated_states:
+        repeated_states.append(child)
         child_node = Node(child)
-        child_node.path += (puzzle.path)
-        child_node.path += (path)
+        child_node.path += puzzle.path
+        child_node.path += path
+        child_node.depth = puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
+        child_node.heuristic = get_algorithm(child_node.puzzle, algorithm)
+        working_queue.put(child_node)
         if (verbose):
             print('Child formed')
             print_puzzle(child_node.puzzle)
-        return child_node
     else:
         if (verbose):
             print('Repeated state found, skipping.\n')
-            return None
 
 def get_puzzle():
     chosen_puzzle = False
