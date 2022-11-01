@@ -1,5 +1,6 @@
 import copy
 from queue import PriorityQueue
+from shutil import move
 import time
 
 goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access, also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
@@ -40,12 +41,13 @@ def main():
     print('Number of nodes expanded: ' + str(expanded_nodes - 1)) #Minus 1 because it keeps into account expanding the first state
     print('Max queue size: ' + str(max_queue_size))
     print('The path to get to the node was: ')
+    move_count = 0
     for element in range(len(goal_state.path)):
         if type(goal_state.path[element]) is tuple:
             print_puzzle(goal_state.path[element])
         else:
-            print(goal_state.path[element])
-            
+            move_count += 1
+            print('Move ' + str(move_count) + ': ' + goal_state.path[element])
     print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
 
