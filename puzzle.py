@@ -2,7 +2,8 @@ import copy
 from queue import PriorityQueue
 import time
 
-goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access, also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
+goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access
+                                                #also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
 
 #EMPTY TILE IS REPRESENTED BY 0
 #Changed node structure a lot
@@ -10,7 +11,7 @@ goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded 
 class Node:
     def __init__ (self, puzzle):
         self.puzzle = puzzle
-        self.path = []
+        self.path = [] #Changed to a list as it saves a LOT of time adding to a list than a single long string
         self.heuristic = 0 #h(n)
         self.depth = 0 #g(n)
     
@@ -19,8 +20,8 @@ class Node:
     def __lt__(self, other):
         self.distance = self.depth + self.heuristic 
         other.distance = other.depth + other.heuristic
-        if (other.distance == self.distance):
-            return other.depth > self.depth #Done because my search was bugged, when f(n) of two nodes equaled each other, it would choose a larger depth randomly, choose the smaller depth manually to solve 
+        if (other.distance == self.distance): #Done because when f(n) of two nodes equaled each other, it would choose the wrong depth node,
+            return other.depth > self.depth   #choose the smaller depth manually to solve 
         else:
             return other.distance > self.distance
 
@@ -58,10 +59,10 @@ def search_puzzle(puzzle, algorithm):
     #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f
     curr_puzzle = Node(puzzle) #Initial state is a Node of the chosen puzzle
     curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm) #Get algorithm via user input choice
-    working_queue = PriorityQueue()
-    repeated_states = [] #tried to use a set to speed up the process but it did not
+    working_queue = PriorityQueue() #Chose priority queue to sort by the lowest heuristic when comparing each node (uses __lt__ operator)
+    repeated_states = [] #tried to use a set to speed up the process but it did not work with lists, so used a list instead
     max_queue_size = 0 #Max queue size
-    expanded_nodes = 0 #Node count, changed from the old implementation as the old one was SUPER redundant, old nodes would NEVER be revisited with my dupe implementation, so there is no need for a separate attribute for expansion
+    expanded_nodes = 0 #Node coun 
     curr_puzzle.path += [curr_puzzle.puzzle]
 
     working_queue.put(curr_puzzle) #Put initial state into the priority queue
@@ -70,13 +71,13 @@ def search_puzzle(puzzle, algorithm):
     track_time = time.time()
     max_time = 900 #15 minutes total for program to run
     while (working_queue.qsize() != 0):
-        #https://raspberrypi.stackexchange.com/questions/15613/stop-program-after-a-period-of-time, Done in case a search depth takes way too long to finish
+        #https://raspberrypi.stackexchange.com/questions/15613/stop-program-after-a-period-of-time: Force exit the program after 15 mins
         if (time.time() >= track_time + max_time):
             print('Program time is up! Ending program now!')
             exit(0)
         max_queue_size = max(working_queue.qsize(), max_queue_size) #change max queue size to the biggest size between the working queue and the max queue
         curr_puzzle = working_queue.get() #Get the smallest heuristic node from the queue
-        expanded_nodes += 1 #Expand the node count
+        expanded_nodes += 1 #Expand the node count per new node popped out of the queue
 
         if curr_puzzle.puzzle == goal_state: #If you match the goal state
             return curr_puzzle, expanded_nodes, max_queue_size
@@ -104,17 +105,17 @@ def node_expansion(puzzle, repeated_states, working_queue, algorithm):
         move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.', working_queue, algorithm)
 
 #HELPER FUNCTIONS
-#NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
+#NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS INITIALLY
 def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction, working_queue, algorithm): #WHERE CHILDREN ARE GENERATED AND ADDED INTO THE QUEUE
     path = []
     child = copy.deepcopy(puzzle.puzzle) #DEEP COPY because shallow copy is just a copy by reference, the original object still changes
-    path += ['Moving tile ' + str(child[new_row][new_column]) + direction] #Adding the steps to solve the puzzle to the node structure
+    path += ['Moving tile ' + str(child[new_row][new_column]) + direction] #Adding the steps to solve the puzzle to the temp variable path
     child[expand_row][expand_column] = child[new_row][new_column] #Slide the tile to the position passed in the node expansion function
     child[new_row][new_column] = 0 #Change the spot to an empty spot that was moved
-    path += [child] #Adding the puzzle to the node structure
+    path += [child] #Adding the puzzle to the current path
 
     #Based off this: https://ai.stackexchange.com/questions/7555/how-do-i-keep-track-of-already-visited-states-in-breadth-first-search
-    if child not in repeated_states: #If this new puzzle is NOT a repeat 
+    if child not in repeated_states: #Only waste your time doing this IF this new puzzle is NOT a repeat 
         repeated_states.append(child) #Move the new puzzle into our repeat states
         child_node = Node(child) #Create a new Node with the puzzle state
         child_node.path += puzzle.path #Add the previous paths into the child 
