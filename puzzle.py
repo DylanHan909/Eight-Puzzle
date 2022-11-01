@@ -1,6 +1,5 @@
 import copy
 from queue import PriorityQueue
-from shutil import move
 import time
 
 goal_state = ([1, 2, 3], [4, 5, 6], [7, 8, 0]) #Tuples are faster than embedded lists + they hold other lists nicely for access, also the lists elements are mutable, but the # of rows themselves aren't. Perfect for us!
