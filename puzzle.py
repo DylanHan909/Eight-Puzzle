@@ -124,8 +124,6 @@ def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_s
         child_node.depth = puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
         child_node.heuristic = get_algorithm(child_node.puzzle, algorithm) #Calculate our new heuristic for our child node
         working_queue.put(child_node) #Put the child node into the priority queue
-    else:
-        print('Repeat state: skipping!')
 
 def convert_to_list(puzzle): #Convert tuple to a list for modifying the puzzle
     temp_list = []
