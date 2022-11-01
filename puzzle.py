@@ -22,8 +22,8 @@ class Node:
     def __lt__(self, other):
         self.distance = self.depth + self.heuristic 
         other.distance = other.depth + other.heuristic
-        if (other.distance == self.distance): #Done because when f(n) of two nodes equaled each other, it would choose the wrong depth node,
-            return other.depth > self.depth   #choose the smaller depth manually to solve 
+        if (other.distance == self.distance):
+            return other.depth > self.depth #Done because my search was bugged, when f(n) of two nodes equaled each other, it would choose a larger depth randomly, choose the smaller depth manually to solve 
         else:
             return other.distance > self.distance
 
@@ -38,10 +38,6 @@ def main():
     end = time.time()
     search_time = end - start
     print('Goal state!\n')
-    print_puzzle(goal_state.puzzle)
-    print('Solution depth was ' + str(goal_state.depth))
-    print('Number of nodes expanded: ' + str(expanded_nodes - 1)) #Minus 1 because it keeps into account expanding the first state
-    print('Max queue size: ' + str(max_queue_size))
     print('The path to get to the node was: ')
     move_count = 0
     #Printing out the path in full
@@ -51,6 +47,9 @@ def main():
         else: #Otherwise
             move_count += 1
             print('Move ' + str(move_count) + ': ' + goal_state.path[element]) #Print the current move # and the direction a tile was moved here
+    print('Solution depth was ' + str(goal_state.depth))
+    print('Number of nodes expanded: ' + str(expanded_nodes))
+    print('Max queue size: ' + str(max_queue_size))
     print ('Search time was ' + str(round(search_time, 5))  + ' seconds')
     return 0
 #SEARCH RELATED FUNCTIONS
@@ -78,15 +77,16 @@ def search_puzzle(puzzle, algorithm):
             exit(0)
         max_queue_size = max(working_queue.qsize(), max_queue_size) #change max queue size to the biggest size between the working queue and the max queue
         curr_puzzle = working_queue.get() #Get the smallest heuristic node from the queue
-        expanded_nodes += 1 #Expand the node count per new node popped out of the queue
-
         if curr_puzzle.puzzle == goal_state: #If you match the goal state
             return curr_puzzle, expanded_nodes, max_queue_size
-        
+        expanded_nodes += 1 #Expand the node count per new node popped out of the queue
         print('The best state to expand with a g(n) = ' + str(curr_puzzle.depth) + ' and h(n) = ' + str(curr_puzzle.heuristic) + ' is...') #output the chosen state's heuristic
         print_puzzle(curr_puzzle.puzzle) #Print the puzzle
 
         node_expansion(curr_puzzle, repeated_states, working_queue, algorithm) #Expand nodes
+    else:
+        print('No solution found. Exiting the program.')
+        exit(0)
 
 def node_expansion(puzzle, repeated_states, working_queue, algorithm):
     for row in range(len(puzzle.puzzle)): #range done so it can work for 15+ size puzzles
@@ -100,8 +100,10 @@ def node_expansion(puzzle, repeated_states, working_queue, algorithm):
         move_tile(puzzle, (puzzle.zeroRow - 1), puzzle.zeroCol, repeated_states, ' downwards.', working_queue, algorithm)
     if (puzzle.zeroCol < (len(puzzle.puzzle) - 1)): #if column is to the left of the rightmost column
         move_tile(puzzle, puzzle.zeroRow, (puzzle.zeroCol + 1), repeated_states, ' leftwards.', working_queue, algorithm)
-    if (puzzle.zeroCol != 0): #If the column is to the right of tthe leftmost column
+    if (puzzle.zeroCol != 0): #If the column is to the right of the leftmost column
         move_tile(puzzle, puzzle.zeroRow, (puzzle.zeroCol - 1), repeated_states, ' rightwards.', working_queue, algorithm)
+
+
 
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS INITIALLY
