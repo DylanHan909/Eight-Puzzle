@@ -87,7 +87,7 @@ def search_puzzle(puzzle, algorithm):
         #https://www.geeksforgeeks.org/python-remove-none-values-from-list/
         for child in children_nodes:
             if child not in repeated_states:
-                child.depth = curr_puzzle.depth + 1
+                child.depth = curr_puzzle.depth + 1 #Need to do this or depth will be perma frozen at 1
                 child.heuristic = get_algorithm(child.puzzle, algorithm)
                 working_queue.put(child)
                 repeated_states.append(child.puzzle)
@@ -100,13 +100,13 @@ def node_expansion(puzzle, repeated_states):
             if (puzzle.puzzle[row][column] == 0): #tile with the empty space
                 expand_row = row
                 expand_column = column 
-    if (expand_row != 0):
-        move_up(puzzle, expand_row, expand_column, repeated_states)
     if (expand_row < 2):
+        move_up(puzzle, expand_row, expand_column, repeated_states)
+    if (expand_row != 0):
         move_down(puzzle, expand_row, expand_column, repeated_states)
-    if (expand_column != 0):
-        move_left(puzzle, expand_row, expand_column, repeated_states)
     if (expand_column < 2):
+        move_left(puzzle, expand_row, expand_column, repeated_states)
+    if (expand_column != 0):
         move_right(puzzle, expand_row, expand_column, repeated_states)
     return puzzle
 
@@ -164,40 +164,39 @@ def a_star_manhatten(puzzle):
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
 def move_up(puzzle, expand_row, expand_column, repeated_states):
-    if (verbose):
-        print('Moving tile upwards')
     child = copy.deepcopy(puzzle.puzzle)
-    child[expand_row][expand_column] = child[expand_row - 1][expand_column]
-    child[expand_row - 1][expand_column] = 0
+    if (verbose):
+        print('Moving tile ' + str(child[expand_row + 1][expand_column]) + ' upwards')
+    child[expand_row][expand_column] = child[expand_row + 1][expand_column]
+    child[expand_row + 1][expand_column] = 0
     if child not in repeated_states:
         puzzle.move_up = Node(child)
         if (verbose):
-            print_puzzle(puzzle.move_up.puzzle)
+            print_puzzle(puzzle.move_up.puzzle) 
     else:
         if (verbose):
             print('Repeated state found, skipping.\n')
 
 def move_down(puzzle, expand_row, expand_column, repeated_states):
-    if (verbose):
-        print('Moving tile downwards')
     child = copy.deepcopy(puzzle.puzzle)
-    child[expand_row][expand_column] = child[expand_row + 1][expand_column]
-    child[expand_row + 1][expand_column] = 0
+    if (verbose):
+        print('Moving tile ' + str(child[expand_row - 1][expand_column]) + ' downwards')
+    child[expand_row][expand_column] = child[expand_row - 1][expand_column]
+    child[expand_row - 1][expand_column] = 0
     if child not in repeated_states:
         puzzle.move_down = Node(child)
         if (verbose):
-            print_puzzle(puzzle.move_down.puzzle) 
+            print_puzzle(puzzle.move_down.puzzle)
     else:
         if (verbose):
             print('Repeated state found, skipping.\n')
 
-
 def move_left(puzzle, expand_row, expand_column, repeated_states):
-    if (verbose):
-        print('Moving tile leftwards')
     child = copy.deepcopy(puzzle.puzzle)
-    child[expand_row][expand_column] = child[expand_row][expand_column - 1]
-    child[expand_row][expand_column - 1] = 0
+    if (verbose):
+        print('Moving tile ' + str(child[expand_row][expand_column + 1]) + ' leftwards')
+    child[expand_row][expand_column] = child[expand_row][expand_column + 1]
+    child[expand_row][expand_column + 1] = 0
     if child not in repeated_states:
         puzzle.move_left = Node(child)
         if (verbose):
@@ -207,11 +206,11 @@ def move_left(puzzle, expand_row, expand_column, repeated_states):
             print('Repeated state found, skipping.\n')
 
 def move_right(puzzle, expand_row, expand_column, repeated_states):
-    if (verbose):
-        print('Moving tile rightwards')
     child = copy.deepcopy(puzzle.puzzle)
-    child[expand_row][expand_column] = child[expand_row][expand_column + 1]
-    child[expand_row][expand_column + 1] = 0
+    if (verbose):
+        print('Moving tile ' + str(child[expand_row][expand_column - 1]) + ' rightwards')
+    child[expand_row][expand_column] = child[expand_row][expand_column - 1]
+    child[expand_row][expand_column - 1] = 0
     if child not in repeated_states:
         puzzle.move_right = Node(child)
         if (verbose):
