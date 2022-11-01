@@ -51,7 +51,7 @@ def main():
 def search_puzzle(puzzle, algorithm):
     #Using priority queue for the node frontier: https://docs.python.org/3/library/queue.html
     #HEAVILY inspired from psuedocode in: https://www.dropbox.com/sh/cp90q8nlk8od4cw/AADK4L3qOh-OJtFzdi_8Moaka?dl=0&preview=Project_1_The_Eight_Puzzle_CS_170_2022.pdf
-    #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9fhttps://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f as well
+    #INSPIRED BY https://plainenglish.io/blog/uniform-cost-search-ucs-algorithm-in-python-ec3ee03fca9f
     curr_puzzle = Node(puzzle)
     curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm)
     working_queue = PriorityQueue()
@@ -62,7 +62,13 @@ def search_puzzle(puzzle, algorithm):
     working_queue.put(curr_puzzle)
     repeated_states.append(curr_puzzle.puzzle)
     max_queue_size += 1
+    track_time = time.time()
+    max_time = 9000 #15 minutes total for program to run
     while (working_queue.qsize() != 0):
+        #https://raspberrypi.stackexchange.com/questions/15613/stop-program-after-a-period-of-time, Done in case a search depth takes way too long to finish
+        if (time.time() >= track_time + max_time):
+            print('Program time is up! Ending program now!')
+            exit(0)
         max_queue_size = max(working_queue.qsize(), max_queue_size)
         curr_puzzle = working_queue.get()
         if (curr_puzzle.is_expanded is not True):
