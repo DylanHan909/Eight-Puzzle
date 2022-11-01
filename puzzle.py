@@ -12,10 +12,7 @@ verbose = False
 class Node:
     def __init__ (self, puzzle):
         self.puzzle = puzzle
-        self.move_up = None
-        self.move_down = None
-        self.move_left = None
-        self.move_right = None
+        self.path = ''
         self.is_expanded = None
         self.heuristic = 0 #h(n)
         self.depth = 0 #g(n)
@@ -31,12 +28,12 @@ class Node:
             return other.distance > self.distance
 #Driver FUNCTION
 def main():
-    '''
+    #'''
     debugging = input("DEBUGGING ONLY: PRESS 1 FOR EXTRA OUTPUTS: ")
     if (debugging == '1'):
         global verbose
         verbose = True
-    '''
+    #'''
     puzzle = get_puzzle()
     algorithm = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhatten Distance Heuristic: ")
     while (int(algorithm) < 1 or int(algorithm) > 3):
@@ -55,7 +52,7 @@ def search_puzzle(puzzle, algorithm):
     curr_puzzle = Node(puzzle)
     curr_puzzle.heuristic = get_algorithm(curr_puzzle.puzzle, algorithm)
     working_queue = PriorityQueue()
-    repeated_states = []
+    repeated_states = [] #tried to use a set to speed up the process but it did not
     max_queue_size = 0
     expanded_nodes = 0
 
@@ -63,7 +60,7 @@ def search_puzzle(puzzle, algorithm):
     repeated_states.append(curr_puzzle.puzzle)
     max_queue_size += 1
     track_time = time.time()
-    max_time = 9000 #15 minutes total for program to run
+    max_time = 900 #15 minutes total for program to run
     while (working_queue.qsize() != 0):
         #https://raspberrypi.stackexchange.com/questions/15613/stop-program-after-a-period-of-time, Done in case a search depth takes way too long to finish
         if (time.time() >= track_time + max_time):
@@ -83,12 +80,13 @@ def search_puzzle(puzzle, algorithm):
             print('Solution depth was ' + str(curr_puzzle.depth))
             print('Number of nodes expanded: ' + str(expanded_nodes - 1)) #Minus 1 because it keeps into account expanding the first state
             print('Max queue size: ' + str(max_queue_size))
+            print('The path to get to the node was \n' + str(curr_puzzle.path))
             break
         
         if (verbose):
             print('Puzzle will now be expanded...\n')
-        expanded = node_expansion(curr_puzzle, repeated_states)
-        children_nodes = [expanded.move_up, expanded.move_down, expanded.move_left, expanded.move_right]
+        
+        children_nodes = node_expansion(curr_puzzle, repeated_states)
         children_nodes = list(filter(lambda item: item is not None, children_nodes))
         #https://www.geeksforgeeks.org/python-remove-none-values-from-list/
         for child in children_nodes:
@@ -101,20 +99,24 @@ def search_puzzle(puzzle, algorithm):
 def node_expansion(puzzle, repeated_states):
     expand_row = 0
     expand_column = 0
-    for row in range(3):
-        for column in range(3):
+    child1 = None
+    child2 = None
+    child3 = None
+    child4 = None
+    for row in range(len(puzzle.puzzle)):
+        for column in range(len(puzzle.puzzle)):
             if (puzzle.puzzle[row][column] == 0): #tile with the empty space
                 expand_row = row
                 expand_column = column 
-    if (expand_row < 2):
-        move_up(puzzle, expand_row, expand_column, repeated_states)
+    if (expand_row < (len(puzzle.puzzle) - 1)):
+        child1 = move_tile(puzzle, expand_row, expand_column, (expand_row + 1), expand_column, repeated_states, ' upwards.')
     if (expand_row != 0):
-        move_down(puzzle, expand_row, expand_column, repeated_states)
-    if (expand_column < 2):
-        move_left(puzzle, expand_row, expand_column, repeated_states)
+        child2 = move_tile(puzzle, expand_row, expand_column, (expand_row - 1), expand_column, repeated_states, ' downwards.')
+    if (expand_column < (len(puzzle.puzzle) - 1)):
+        child3 = move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column + 1), repeated_states, ' leftwards.')
     if (expand_column != 0):
-        move_right(puzzle, expand_row, expand_column, repeated_states)
-    return puzzle
+        child4 = move_tile(puzzle, expand_row, expand_column, expand_row, (expand_column - 1), repeated_states, ' rightwards.')
+    return [child1, child2, child3, child4]
 
 #HEURISTIC FUNCTIONS
 def uniform_cost():
@@ -126,8 +128,8 @@ def a_star_misplaced(puzzle):
     if (verbose):
         print('Misplaced Tile Heuristic was selected.')
     misplaced_tiles = 0
-    for row in range(3):
-        for column in range(3):
+    for row in range(len(puzzle)):
+        for column in range(len(puzzle)):
             if (puzzle[row][column] != goal_state[row][column]):
                 if (puzzle[row][column] != 0): #need to account for an empty tile
                     if (verbose):
@@ -152,8 +154,8 @@ def a_star_manhatten(puzzle):
     misplaced_column = 0
     misplaced_tile = 0
     manhatten = 0
-    for row in range(3):
-        for column in range(3):
+    for row in range(len(puzzle)):
+        for column in range(len(puzzle)):
             if (puzzle[row][column] != goal_state[row][column]):
                 if (puzzle[row][column] != 0): #need to account for an empty tile
                     misplaced_tile = puzzle[row][column]
@@ -169,61 +171,25 @@ def a_star_manhatten(puzzle):
 
 #HELPER FUNCTIONS
 #NEED DEEP COPY BECAUSE SHALLOW COPY SCREWED UP COPYING OBJECTS 
-def move_up(puzzle, expand_row, expand_column, repeated_states):
+def move_tile(puzzle, expand_row, expand_column, new_row, new_column, repeated_states, direction):
     child = copy.deepcopy(puzzle.puzzle)
+    path = 'Moving tile ' + str(child[new_row][new_column]) + direction + '\n'
     if (verbose):
-        print('Moving tile ' + str(child[expand_row + 1][expand_column]) + ' upwards')
-    child[expand_row][expand_column] = child[expand_row + 1][expand_column]
-    child[expand_row + 1][expand_column] = 0
+        print('Moving tile ' + str(child[new_row][new_column]) + direction)
+    child[expand_row][expand_column] = child[new_row][new_column]
+    child[new_row][new_column] = 0
     if child not in repeated_states:
-        puzzle.move_up = Node(child)
+        child_node = Node(child)
+        child_node.path += (puzzle.path)
+        child_node.path += (path)
         if (verbose):
-            print_puzzle(puzzle.move_up.puzzle) 
+            print('Child formed')
+            print_puzzle(child_node.puzzle)
+        return child_node
     else:
         if (verbose):
             print('Repeated state found, skipping.\n')
-
-def move_down(puzzle, expand_row, expand_column, repeated_states):
-    child = copy.deepcopy(puzzle.puzzle)
-    if (verbose):
-        print('Moving tile ' + str(child[expand_row - 1][expand_column]) + ' downwards')
-    child[expand_row][expand_column] = child[expand_row - 1][expand_column]
-    child[expand_row - 1][expand_column] = 0
-    if child not in repeated_states:
-        puzzle.move_down = Node(child)
-        if (verbose):
-            print_puzzle(puzzle.move_down.puzzle)
-    else:
-        if (verbose):
-            print('Repeated state found, skipping.\n')
-
-def move_left(puzzle, expand_row, expand_column, repeated_states):
-    child = copy.deepcopy(puzzle.puzzle)
-    if (verbose):
-        print('Moving tile ' + str(child[expand_row][expand_column + 1]) + ' leftwards')
-    child[expand_row][expand_column] = child[expand_row][expand_column + 1]
-    child[expand_row][expand_column + 1] = 0
-    if child not in repeated_states:
-        puzzle.move_left = Node(child)
-        if (verbose):
-            print_puzzle(puzzle.move_left.puzzle) 
-    else:
-        if (verbose):
-            print('Repeated state found, skipping.\n')
-
-def move_right(puzzle, expand_row, expand_column, repeated_states):
-    child = copy.deepcopy(puzzle.puzzle)
-    if (verbose):
-        print('Moving tile ' + str(child[expand_row][expand_column - 1]) + ' rightwards')
-    child[expand_row][expand_column] = child[expand_row][expand_column - 1]
-    child[expand_row][expand_column - 1] = 0
-    if child not in repeated_states:
-        puzzle.move_right = Node(child)
-        if (verbose):
-            print_puzzle(puzzle.move_right.puzzle) 
-    else:
-        if (verbose):
-            print('Repeated state found, skipping.\n')
+            return None
 
 def get_puzzle():
     chosen_puzzle = False
@@ -237,8 +203,8 @@ def get_puzzle():
             custom_row_2 = input('Type in the first row here. Put a space between each number: ')
             custom_row_3 = input('Type in the first row here. Put a space between each number: ')
             custom_puzzle = (custom_row_1.split(' '), custom_row_2.split(' '), custom_row_3.split(' '))
-            for row in range(3):
-                for column in range(3):
+            for row in range(len(custom_puzzle)):
+                for column in range(len(custom_puzzle)):
                     custom_puzzle[row][column] = int(custom_puzzle[row][column])
             if (verbose):
                 print(custom_puzzle)
@@ -293,15 +259,15 @@ def difficulty_select():
             difficulty = input("Incorrect input, please choose the difficulty again: ")
 
 def get_goal_position(goal_state, misplaced_tile):
-    for row in range(3):
-        for column in range(3):
+    for row in range(len(goal_state)):
+        for column in range(len(goal_state)):
             if (goal_state[row][column] == misplaced_tile):
                 return row, column
 
 def print_puzzle(puzzle):
-    for row in range(3):
+    for row in range(len(puzzle)):
         print('[', end = "")
-        for column in range(2):
+        for column in range(len(puzzle) - 1):
             print(str(puzzle[row][column]) + ', ', end = "")
         print(str(puzzle[row][2]), end = "")
         print(']')
