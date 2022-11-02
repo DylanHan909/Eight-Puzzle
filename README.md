@@ -5,3 +5,5 @@ Eight-Puzzle made in Python for CS170 class in UCR.
 DEBUG_FILE_ONLY folder is a folder that contains an instance of puzzle.py that has extra outputs to verify the functionality of various algorithms and functions.
 Do not run that file or the search time might slow exponentially. 
 Only run puzzle.py for the most efficient results. 
+
+Report linked here: https://docs.google.com/document/d/1rTHkBReStDmCK2JTtiCJeHoDZcSKNl9Yd6x3Pc6u2ac/edit?usp=sharing
